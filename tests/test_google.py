@@ -1,45 +1,40 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import os
 
 def test_anvi_homepage():
-
     options = Options()
-
-    # Headless mode
     options.add_argument("--headless=new")
-
-    # Linux fixes
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-
-    # Faster loading
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
 
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options
-    )
-
-    # Page load timeout
+    # ✅ No ChromeDriverManager needed — Selenium 4.6+ manages it automatically
+    driver = webdriver.Chrome(service=Service(), options=options)
     driver.set_page_load_timeout(30)
 
     try:
-        # Open website
         driver.get("https://anvicouture.com/")
 
-        time.sleep(5)
+        # ✅ Wait for title to be populated (JS-rendered), up to 15s
+        WebDriverWait(driver, 15).until(
+            EC.title_contains("Anvi")
+        )
 
-        # Validate title
+        print(f"Title: {driver.title}")
         assert "Anvi" in driver.title
 
-        # Save screenshot
+        os.makedirs("screenshots", exist_ok=True)
         driver.save_screenshot("screenshots/anvi_homepage.png")
-
-        print("Website loaded successfully")
+        print("✅ Website loaded successfully")
+        print("✅ Screenshot saved → screenshots/anvi_homepage.png")
 
     finally:
         driver.quit()
+
+test_anvi_homepage()
